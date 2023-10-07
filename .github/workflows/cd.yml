@@ -35,11 +35,9 @@ jobs:
 
     steps:
     - name: Clone
-      if: ${{ false }}
       uses: actions/checkout@v2
 
     - name: Configure AWS credentials
-      #if: ${{ false }}
       uses: aws-actions/configure-aws-credentials@v1
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -47,12 +45,10 @@ jobs:
         aws-region: ${{ env.AWS_REGION }}
       
     - name: Login to Amazon ECR
-      if: ${{ false }}
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v1
 
     - name: Build, tag, and push image to Amazon ECR
-      if: ${{ false }}
       id: build-image
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
@@ -77,9 +73,9 @@ jobs:
         chmod +x kubectl
         sudo mv kubectl /usr/local/bin/
         echo ${{ secrets.KUBECONFIG }} | base64 --decode > kubeconfig.yaml
-        aws eks update-kubeconfig --name ${cluster_name} --region us-east-1
+        aws eks update-kubeconfig --name az-eks-test-v125 --region us-east-1
     - name: Deploy
-      if: ${{ false }}
+        if: ${{ false }}
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
       run: |
