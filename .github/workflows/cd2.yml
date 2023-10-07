@@ -25,10 +25,10 @@ jobs:
         aws-region: ${{ env.AWS_REGION }}
 
 
-- name: Configure Kubectl
-        uses: azure/setup-kubectl@v2.0
-        with:
-          version: 'v1.23.6'
+    - name: Configure Kubectl
+      uses: azure/setup-kubectl@v2.0
+      with:
+        version: 'v1.23.6'
         id: install
       
       # This action will use the GitHub OIDC id-token and request AWS STS to get temporary credentials.
@@ -41,14 +41,14 @@ jobs:
       
       # The following command will update the kube config file with our cluster information.
       # It will use the credentials exported by the previous action.
-      - name: Update KubeConfig
-        shell: bash
+    - name: Update KubeConfig
+      shell: bash
         run: |
           aws eks update-kubeconfig --name ${{ secrets.AWS_CLUSTER_NAME }} --region=us-east-1
       
       # Deploy newly built changes to EKS cluster.
-      - name: Deploy To Cluster
-        shell: bash
+    - name: Deploy To Cluster
+      shell: bash
         run: kubectl get ns
     
 
@@ -63,3 +63,4 @@ jobs:
         #kubectl kustomize k8s | kubectl apply -f -
         kubectl get ns
         #cat k8s/kustomization.yaml
+ 
