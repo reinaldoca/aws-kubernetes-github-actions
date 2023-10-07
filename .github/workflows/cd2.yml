@@ -1,0 +1,65 @@
+name: cd2
+
+on:
+  workflow_dispatch:
+  #push:
+  #  branches:
+  #    - master
+  #pull_request:
+  #  branches:
+  #    - master
+
+env: 
+  AWS_REGION: us-east-1
+  ECR_REPOSITORY: kubernetes-github-actions
+  SHORT_SHA: $(echo ${{ github.sha }} | cut -c 1-8)
+
+jobs:
+
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+
+
+- name: Configure Kubectl
+        uses: azure/setup-kubectl@v2.0
+        with:
+          version: 'v1.23.6'
+        id: install
+      
+      # This action will use the GitHub OIDC id-token and request AWS STS to get temporary credentials.
+      # The temporary credentials are exported as env variables.
+      #- name: Configure AWS Credentials
+      #  uses: aws-actions/configure-aws-credentials@v1
+      #  with:
+      #    aws-region: ${{ matrix.region }}
+      #    role-to-assume: ${{ secrets.ROLE_TO_ASSUME }}
+      
+      # The following command will update the kube config file with our cluster information.
+      # It will use the credentials exported by the previous action.
+      - name: Update KubeConfig
+        shell: bash
+        run: |
+          aws eks update-kubeconfig --name ${{ secrets.AWS_CLUSTER_NAME }} --region=us-east-1
+      
+      # Deploy newly built changes to EKS cluster.
+      - name: Deploy To Cluster
+        shell: bash
+        run: kubectl get ns
+    
+
+    - name: Deploy
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+      run: |
+        export ECR_REPOSITORY=${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}
+        export IMAGE_TAG=${{ env.SHORT_SHA }}
+        export KUBECONFIG=kubeconfig.yaml
+        envsubst < k8s/kustomization.tmpl.yaml > k8s/kustomization.yaml
+        #kubectl kustomize k8s | kubectl apply -f -
+        kubectl get ns
+        #cat k8s/kustomization.yaml
